@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'peminjaman.dart';
+import 'package:flutter/services.dart';
+import 'package:uts_2301082020/peminjaman.dart';
+import 'package:intl/intl.dart';
 
 class ProsesPeminjamanPage extends StatefulWidget {
   const ProsesPeminjamanPage({Key? key}) : super(key: key);
@@ -19,6 +21,23 @@ class _ProsesPeminjamanPageState extends State<ProsesPeminjamanPage> {
   late int jumlahPinjaman;
   late int lamaPinjaman;
   late double bunga;
+
+  final TextEditingController _jumlahPinjamanController = TextEditingController();
+
+  String formatRupiah(double number) {
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    return formatter.format(number);
+  }
+
+  String _formatNumber(String s) {
+    return NumberFormat.decimalPattern('id').format(
+      int.parse(s.replaceAll(RegExp(r'[^0-9]'), '')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,9 +114,25 @@ class _ProsesPeminjamanPageState extends State<ProsesPeminjamanPage> {
               },
             ),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Jumlah Pinjaman'),
+              decoration: const InputDecoration(
+                labelText: 'Jumlah Pinjaman',
+                prefixText: 'Rp',
+              ),
               keyboardType: TextInputType.number,
-              onSaved: (value) => jumlahPinjaman = int.parse(value!),
+              controller: _jumlahPinjamanController,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  if (newValue.text.isEmpty) {
+                    return newValue.copyWith(text: '');
+                  }
+                  return newValue.copyWith(
+                    text: _formatNumber(newValue.text),
+                    selection: TextSelection.collapsed(offset: _formatNumber(newValue.text).length),
+                  );
+                }),
+              ],
+              onSaved: (value) => jumlahPinjaman = int.parse(value!.replaceAll('.', '')),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Harap isi jumlah pinjaman';
@@ -163,10 +198,10 @@ class _ProsesPeminjamanPageState extends State<ProsesPeminjamanPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Angsuran Pokok: ${peminjaman.angsuranPokok.toStringAsFixed(2)}'),
-              Text('Bunga per Bulan: ${peminjaman.bungaPerBulan.toStringAsFixed(2)}'),
-              Text('Angsuran per Bulan: ${peminjaman.angsuranPerBulan.toStringAsFixed(2)}'),
-              Text('Total Hutang: ${peminjaman.totalHutang.toStringAsFixed(2)}'),
+              Text('Angsuran Pokok: ${formatRupiah(peminjaman.angsuranPokok)}'),
+              Text('Bunga per Bulan: ${formatRupiah(peminjaman.bungaPerBulan)}'),
+              Text('Angsuran per Bulan: ${formatRupiah(peminjaman.angsuranPerBulan)}'),
+              Text('Total Hutang: ${formatRupiah(peminjaman.totalHutang)}'),
             ],
           ),
           actions: [
