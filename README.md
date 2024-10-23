@@ -1,5 +1,4 @@
 # uts_2301082020
-# KODE SOAL B
 
 A new Flutter project.
 
