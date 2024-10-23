@@ -23,6 +23,7 @@ class _ProsesPeminjamanPageState extends State<ProsesPeminjamanPage> {
   late double bunga;
 
   final TextEditingController _jumlahPinjamanController = TextEditingController();
+  final TextEditingController _tanggalController = TextEditingController();
 
   String formatRupiah(double number) {
     final formatter = NumberFormat.currency(
@@ -72,11 +73,24 @@ class _ProsesPeminjamanPageState extends State<ProsesPeminjamanPage> {
               },
             ),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Tanggal'),
+              decoration: const InputDecoration(
+                labelText: 'Tanggal',
+                hintText: 'DD/MM/YYYY',
+              ),
+              controller: _tanggalController,
+              keyboardType: TextInputType.datetime,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9/]')),
+                LengthLimitingTextInputFormatter(10),
+                _DateInputFormatter(),
+              ],
               onSaved: (value) => tanggal = value!,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Harap isi tanggal';
+                }
+                if (!RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(value)) {
+                  return 'Format tanggal harus DD/MM/YYYY';
                 }
                 return null;
               },
@@ -215,5 +229,22 @@ class _ProsesPeminjamanPageState extends State<ProsesPeminjamanPage> {
         );
       },
     );
+  }
+}
+
+class _DateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final newText = newValue.text;
+    if (newText.length > oldValue.text.length) {
+      if (newText.length == 2 || newText.length == 5) {
+        return TextEditingValue(
+          text: '$newText/',
+          selection: TextSelection.collapsed(offset: newText.length + 1),
+        );
+      }
+    }
+    return newValue;
   }
 }
